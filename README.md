@@ -15,6 +15,7 @@
   - редактировать профиль пользователя
 
 ## Установка и запуск проекта <a id=run></a>
+    
     ```sh
     git clone https://github.com/Irin-Baro/mesto-project-ff
     ```
@@ -28,7 +29,7 @@
     ```
 
     ```sh
-    npm run dev  (npm run build)`
+    npm run dev  (npm run build)
     ```
 
 ## Автор <a id=author></a>

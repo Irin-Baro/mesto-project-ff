@@ -1,11 +1,9 @@
-
 import { createCard, handleDeleteCard, handleLike } from './components/card.js';
-import { openModal, closeModal, fillProfileForm } from './components/modal.js';
+import { openModal, closeModal } from './components/modal.js';
 import { initialCards } from './components/cards.js';
 import './pages/index.css';
 
-// DOM узлы
-const placesWrap = document.querySelector(".places__list");
+const placesWrap = document.querySelector('.places__list');
 const profileEditButton = document.querySelector('.profile__edit-button');
 const profileEditModal = document.querySelector('.popup_type_edit');
 const addCardButton = document.querySelector('.profile__add-button');
@@ -15,74 +13,79 @@ const imageModalImage = imageModal.querySelector('.popup__image');
 const imageModalCaption = imageModal.querySelector('.popup__caption');
 
 // Формы
-const profileEditForm = profileEditModal.querySelector('.popup__form');
-const addCardForm = addCardModal.querySelector('.popup__form');
+const profileEditForm = document.forms['edit-profile'];
+const addCardForm = document.forms['new-place'];
 
 // Элементы профиля
 const profileName = document.querySelector('.profile__title');
 const profileDescription = document.querySelector('.profile__description');
 
+// Элементы форм
+const profileNameInput = profileEditForm.elements['name'];
+const profileDescriptionInput = profileEditForm.elements['description'];
+const cardNameInput = addCardForm.elements['place-name'];
+const cardLinkInput = addCardForm.elements['link'];
+
+// Объект с колбэками для карточек
+const cardCallbacks = {
+    deleteCallback: handleDeleteCard,
+    likeCallback: handleLike,
+    imageCallback: openImagePopup
+};
+
 // Функция открытия попапа с изображением
 function openImagePopup(cardData) {
-  imageModalImage.src = cardData.link;
-  imageModalImage.alt = cardData.name;
-  imageModalCaption.textContent = cardData.name;
-  openModal(imageModal);
+    imageModalImage.src = cardData.link;
+    imageModalImage.alt = cardData.name;
+    imageModalCaption.textContent = cardData.name;
+    openModal(imageModal);
 }
 
-// 1. Редактирование профиля
+// Функция заполнения формы профиля
+function fillProfileForm() {
+    profileNameInput.value = profileName.textContent;
+    profileDescriptionInput.value = profileDescription.textContent;
+}
+
+// Функция для отрисовки карточки
+function renderCard(cardData, method = 'prepend') {
+    const cardElement = createCard(cardData, cardCallbacks);
+    placesWrap[method](cardElement);
+}
+
+// Редактирование профиля
 profileEditButton.addEventListener('click', () => {
-  fillProfileForm(profileEditModal, profileName.textContent, profileDescription.textContent);
-  openModal(profileEditModal);
+    fillProfileForm();
+    openModal(profileEditModal);
 });
 
 profileEditForm.addEventListener('submit', (evt) => {
-  evt.preventDefault();
-  
-  const nameInput = profileEditForm.querySelector('.popup__input_type_name');
-  const descriptionInput = profileEditForm.querySelector('.popup__input_type_description');
-  
-  profileName.textContent = nameInput.value;
-  profileDescription.textContent = descriptionInput.value;
-  
-  closeModal(profileEditModal);
+    evt.preventDefault();
+    profileName.textContent = profileNameInput.value;
+    profileDescription.textContent = profileDescriptionInput.value;
+    closeModal(profileEditModal);
 });
 
-// 2. Добавление новой карточки
+// Добавление новой карточки
 addCardButton.addEventListener('click', () => {
-  openModal(addCardModal);
+    openModal(addCardModal);
 });
 
 addCardForm.addEventListener('submit', (evt) => {
-  evt.preventDefault();
-  
-  const nameInput = addCardForm.querySelector('.popup__input_type_card-name');
-  const linkInput = addCardForm.querySelector('.popup__input_type_url');
-  
-  const newCardData = {
-    name: nameInput.value,
-    link: linkInput.value
-  };
-  
-  const newCard = createCard(
-    newCardData,
-    handleDeleteCard,
-    handleLike,
-    openImagePopup
-  );
-  
-  placesWrap.prepend(newCard);
-  addCardForm.reset();
-  closeModal(addCardModal);
+    evt.preventDefault();
+    
+    const newCardData = {
+        name: cardNameInput.value,
+        link: cardLinkInput.value
+    };
+    
+    renderCard(newCardData); 
+    
+    addCardForm.reset();
+    closeModal(addCardModal);
 });
 
-// 4. Инициализация начальных карточек
+// Инициализация начальных карточек
 initialCards.forEach((data) => {
-  const card = createCard(
-    data,
-    handleDeleteCard,
-    handleLike,
-    openImagePopup
-  );
-  placesWrap.append(card);
+    renderCard(data, 'append');
 });
