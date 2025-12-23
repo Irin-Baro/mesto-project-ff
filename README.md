@@ -1,5 +1,5 @@
 # Cервис Mesto 
-### интерактивная страница, куда можно добавлять фотографии, удалять их и ставить лайки.
+### интерактивная страница, здесь можно добавлять фотографии, удалять их и ставить лайки.
 
 - [Описание](#description)
 - [Установка и запуск проекта](#run)
@@ -16,21 +16,21 @@
 
 ## Установка и запуск проекта <a id=run></a>
     
-    ```sh
-    git clone https://github.com/Irin-Baro/mesto-project-ff
-    ```
+```sh
+git clone https://github.com/Irin-Baro/mesto-project-ff
+```
 
-    ```sh
-    cd mesto-project-ff
-    ```
+```sh
+cd mesto-project-ff
+```
 
-    ```sh
-    npm install
-    ```
+```sh
+npm install
+```
 
-    ```sh
-    npm run dev  (npm run build)
-    ```
+```sh
+npm run dev (npm run build)
+```
 
 ## Автор <a id=author></a>
 - [Яндекс Практикум](https://github.com/yandex-praktikum)

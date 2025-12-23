@@ -1,9 +1,11 @@
+import { allProblematicDomains } from '../utils/unavailableUrls.js';
+
 const showInputError = (formElement, inputElement, errorMessage, validationConfig) => {
     const errorElement = formElement.querySelector(`.${inputElement.id}-error`);
 
     if (!errorElement) {
-      console.error(`Элемент ошибки для ${inputElement.id} не найден`);
-      return;
+        console.error(`Элемент ошибки для ${inputElement.id} не найден`);
+        return;
     }
     
     inputElement.classList.add(validationConfig.inputErrorClass);
@@ -55,7 +57,7 @@ const checkInputLength = (inputElement, value) => {
     
     if (minLength > 0 && maxLength > 0) {
         if (value.length < minLength || value.length > maxLength) {
-        return `Должно быть от ${minLength} до ${maxLength} символов`;
+            return `Должно быть от ${minLength} до ${maxLength} символов`;
         }
     }
     return null; 
@@ -132,4 +134,32 @@ export const clearValidation = (formElement, validationConfig) => {
     if (buttonElement) {
         toggleButtonState(inputList, buttonElement, validationConfig);
     }
+};
+
+function isUrlProblematic(url) {
+    const problematicDomain = allProblematicDomains.find(domain => 
+        url.includes(domain)
+    );
+    if (problematicDomain) {
+        return { 
+            valid: false, 
+            reason: `Проблемный домен: ${problematicDomain}` 
+        };
+    }
+    
+    return { valid: true };
+}
+
+export const validateCards = async (cards) => {
+    const validCards = [];
+
+    for (const card of cards) {
+        const validation = await isUrlProblematic(card.link);
+        
+        if (validation.valid) {
+            validCards.push(card);
+        }
+    }
+
+    return validCards;
 };
