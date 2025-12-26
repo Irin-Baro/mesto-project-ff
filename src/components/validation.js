@@ -1,5 +1,3 @@
-import { allProblematicDomains } from '../utils/unavailableUrls.js';
-
 const showInputError = (formElement, inputElement, errorMessage, validationConfig) => {
     const errorElement = formElement.querySelector(`.${inputElement.id}-error`);
 
@@ -29,13 +27,21 @@ const hasInvalidInput = (inputList) => {
     });
 };
 
+const disableSubmitButton = (buttonElement, validationConfig) => {
+    buttonElement.disabled = true;
+    buttonElement.classList.add(validationConfig.inactiveButtonClass);
+};
+
+const enableSubmitButton = (buttonElement, validationConfig) => {
+    buttonElement.disabled = false;
+    buttonElement.classList.remove(validationConfig.inactiveButtonClass);
+};
+
 const toggleButtonState = (inputList, buttonElement, validationConfig) => {
     if (hasInvalidInput(inputList)) {
-        buttonElement.disabled = true;
-        buttonElement.classList.add(validationConfig.inactiveButtonClass);
+        disableSubmitButton(buttonElement, validationConfig);
     } else {
-        buttonElement.disabled = false;
-        buttonElement.classList.remove(validationConfig.inactiveButtonClass);
+        enableSubmitButton(buttonElement, validationConfig);
     }
 };
 
@@ -47,44 +53,21 @@ const checkInputByRegex = (inputElement, value) => {
     return true;
 };
 
-const getCustomErrorMessage = (inputElement, defaultMessage) => {
-    return inputElement.dataset.error || defaultMessage;
-};
-
-const checkInputLength = (inputElement, value) => {
-    const minLength = inputElement.minLength;
-    const maxLength = inputElement.maxLength;
-    
-    if (minLength > 0 && maxLength > 0) {
-        if (value.length < minLength || value.length > maxLength) {
-            return `Должно быть от ${minLength} до ${maxLength} символов`;
-        }
-    }
-    return null; 
-};
-
 const checkInputValidity = (formElement, inputElement, validationConfig) => {
     const value = inputElement.value.trim();
     
     if (inputElement.validity.valueMissing) {
-        showInputError(formElement, inputElement, 'Вы пропустили это поле.', validationConfig);
+        showInputError(formElement, inputElement, inputElement.validationMessage, validationConfig);
         return false;
     }
 
-    if (!checkInputByRegex(inputElement, value)) {
-        const customErrorMessage = getCustomErrorMessage(inputElement, 'Разрешены только латинские, кириллические буквы, знаки дефиса и пробелы');
-        showInputError(formElement, inputElement, customErrorMessage, validationConfig);
-        return false;
-    }
-    
-    const lengthError = checkInputLength(inputElement, value);
-    if (lengthError) {
-        showInputError(formElement, inputElement, lengthError, validationConfig);
+    if (inputElement.hasAttribute('data-error') && !checkInputByRegex(inputElement, value)) {
+        showInputError(formElement, inputElement, inputElement.dataset.error, validationConfig);
         return false;
     }
     
     if (inputElement.name === 'link' && inputElement.validity.typeMismatch) {
-        showInputError(formElement, inputElement, 'Введите адрес сайта.', validationConfig);
+        showInputError(formElement, inputElement, inputElement.validationMessage, validationConfig);
         return false;
     }
 
@@ -116,9 +99,6 @@ export const enableValidation = (validationConfig) => {
     const formList = Array.from(document.querySelectorAll(validationConfig.formSelector));
     
     formList.forEach((formElement) => {
-        formElement.addEventListener('submit', (evt) => {
-            evt.preventDefault();
-        });
         setEventListeners(formElement, validationConfig);
     });
 };
@@ -126,40 +106,11 @@ export const enableValidation = (validationConfig) => {
 export const clearValidation = (formElement, validationConfig) => {
     const inputList = Array.from(formElement.querySelectorAll(validationConfig.inputSelector));
     const buttonElement = formElement.querySelector(validationConfig.submitButtonSelector);
-    
     inputList.forEach((inputElement) => {
         hideInputError(formElement, inputElement, validationConfig);
     });
     
     if (buttonElement) {
-        toggleButtonState(inputList, buttonElement, validationConfig);
+        disableSubmitButton(buttonElement, validationConfig); 
     }
-};
-
-function isUrlProblematic(url) {
-    const problematicDomain = allProblematicDomains.find(domain => 
-        url.includes(domain)
-    );
-    if (problematicDomain) {
-        return { 
-            valid: false, 
-            reason: `Проблемный домен: ${problematicDomain}` 
-        };
-    }
-    
-    return { valid: true };
-}
-
-export const validateCards = async (cards) => {
-    const validCards = [];
-
-    for (const card of cards) {
-        const validation = await isUrlProblematic(card.link);
-        
-        if (validation.valid) {
-            validCards.push(card);
-        }
-    }
-
-    return validCards;
 };

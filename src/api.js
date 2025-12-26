@@ -1,4 +1,4 @@
-import { validateCards } from "./components/validation.js";
+import { allProblematicDomains } from './utils/unavailableUrls.js';
 
 const config = {
     baseUrl: 'https://nomoreparties.co/v1/higher-front-back-dev',
@@ -8,6 +8,34 @@ const config = {
     }
   };
 
+function isUrlProblematic(url) {
+    const problematicDomain = allProblematicDomains.find(domain => 
+        url.includes(domain)
+    );
+    if (problematicDomain) {
+        return { 
+            valid: false, 
+            reason: `Проблемный домен: ${problematicDomain}` 
+        };
+    }
+    
+    return { valid: true };
+}
+
+const validateCards = async (cards) => {
+    const validCards = [];
+
+    for (const card of cards) {
+        const validation = await isUrlProblematic(card.link);
+        
+        if (validation.valid) {
+            validCards.push(card);
+        }
+    }
+
+    return validCards;
+};
+
 const checkResponse = (res) => {
     if (res.ok) {
         return res.json();
@@ -16,12 +44,17 @@ const checkResponse = (res) => {
 };
 
 export const getInitialCards = async () => {
-    const cardsResponse = await fetch(`${config.baseUrl}/cards`, { 
-        headers: config.headers 
-    });
-    const cards = await cardsResponse.json();
-    const cardsValid = await validateCards(cards);
-    return cardsValid;
+    try {
+        const cardsResponse = await fetch(`${config.baseUrl}/cards`, { 
+            headers: config.headers 
+        });
+        const cards = await checkResponse(cardsResponse);
+        const cardsValid = await validateCards(cards);
+        return cardsValid;
+    } catch (error) {
+        console.error('Ошибка при загрузке карточек:', error);
+        throw error;
+    }
 };
 
 export const getUserInfo = () => {

@@ -38,8 +38,6 @@ const cardNameInput = addCardForm.elements['place-name'];
 const cardLinkInput = addCardForm.elements['link'];
 const avatarUrlInput = avatarEditForm.elements['avatar-url']; 
 
-const updateText = 'Сохранение...';
-
 const validationConfig = {
     formSelector: '.popup__form',
     inputSelector: '.popup__input',
@@ -48,6 +46,21 @@ const validationConfig = {
     inputErrorClass: 'popup__input_type_error',
     errorClass: 'popup__error_visible'
 };
+
+function renderLoading(isLoading, buttonElement) {    
+    const updateText = 'Сохранение...';
+
+    if (isLoading) {
+        buttonElement.dataset.originalText = buttonElement.textContent;
+        buttonElement.textContent = updateText;
+        buttonElement.disabled = true;
+    } else {
+        if (buttonElement.dataset.originalText) {
+            buttonElement.textContent = buttonElement.dataset.originalText;
+        }
+        buttonElement.disabled = false;
+    }
+}
 
 enableValidation(validationConfig);
 
@@ -98,23 +111,19 @@ profileEditButton.addEventListener('click', () => {
 profileEditForm.addEventListener('submit', (evt) => {
     evt.preventDefault();
     
-    if (profileEditForm.checkValidity()) {
-        const submitButton = profileEditForm.querySelector('.popup__button');
-        const originalText = submitButton.textContent;
-
-        submitButton.textContent = updateText;
-        
-        updateUserInfo(profileNameInput.value, profileDescriptionInput.value)
-            .then((userData) => {
-                profileName.textContent = userData.name;
-                profileDescription.textContent = userData.about;
-                closeModal(profileEditModal);
-            })
-            .catch(err => console.error('Ошибка при обновлении профиля:', err))
-            .finally(() => {
-                submitButton.textContent = originalText;
-            });
-    }
+    const submitButton = profileEditForm.querySelector('.popup__button');
+    renderLoading(true, submitButton);
+    
+    updateUserInfo(profileNameInput.value, profileDescriptionInput.value)
+        .then((userData) => {
+            profileName.textContent = userData.name;
+            profileDescription.textContent = userData.about;
+            closeModal(profileEditModal);
+        })
+        .catch(err => console.error('Ошибка при обновлении профиля:', err))
+        .finally(() => {
+            renderLoading(false, submitButton);
+        });
 });
 
 addCardButton.addEventListener('click', () => {
@@ -126,24 +135,20 @@ addCardButton.addEventListener('click', () => {
 addCardForm.addEventListener('submit', (evt) => {
     evt.preventDefault();
 
-    if (addCardForm.checkValidity()) {
-        const submitButton = addCardForm.querySelector('.popup__button');
-        const originalText = submitButton.textContent;
-        
-        submitButton.textContent = updateText;
-        
-        addNewCard(cardNameInput.value, cardLinkInput.value)
-            .then((newCard) => {
-                renderCard(newCard);
-                addCardForm.reset();
-                clearValidation(addCardForm, validationConfig);
-                closeModal(addCardModal);
-            })
-            .catch(err => console.error('Ошибка при добавлении карточки:', err))
-            .finally(() => {
-                submitButton.textContent = originalText;
-            });
-    }
+    const submitButton = addCardForm.querySelector('.popup__button');
+    renderLoading(true, submitButton);
+    
+    addNewCard(cardNameInput.value, cardLinkInput.value)
+        .then((newCard) => {
+            renderCard(newCard);
+            addCardForm.reset();
+            clearValidation(addCardForm, validationConfig);
+            closeModal(addCardModal);
+        })
+        .catch(err => console.error('Ошибка при добавлении карточки:', err))
+        .finally(() => {
+            renderLoading(false, submitButton);
+        });
 });
 
 avatarEditButton.addEventListener('click', () => {
@@ -155,22 +160,18 @@ avatarEditButton.addEventListener('click', () => {
 avatarEditForm.addEventListener('submit', (evt) => {
     evt.preventDefault();
     
-    if (avatarEditForm.checkValidity()) {
-        const submitButton = avatarEditForm.querySelector('.popup__button');
-        const originalText = submitButton.textContent;
-        
-        submitButton.textContent = updateText;
-        
-        updateAvatar(avatarUrlInput.value)
-            .then((userData) => {
-                profileAvatar.src = userData.avatar;
-                closeModal(avatarEditModal);
-            })
-            .catch(err => console.error('Ошибка при обновлении аватара:', err))
-            .finally(() => {
-                submitButton.textContent = originalText;
-            });
-    }
+    const submitButton = avatarEditForm.querySelector('.popup__button');
+    renderLoading(true, submitButton);
+    
+    updateAvatar(avatarUrlInput.value)
+        .then((userData) => {
+            profileAvatar.src = userData.avatar;
+            closeModal(avatarEditModal);
+        })
+        .catch(err => console.error('Ошибка при обновлении аватара:', err))
+        .finally(() => {
+            renderLoading(false, submitButton);
+        });
 });
 
 profileEditModal.querySelector('.popup__close').addEventListener('click', () => {
